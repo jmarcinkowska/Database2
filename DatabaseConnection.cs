@@ -24,20 +24,5 @@ namespace projekt {
             }
         }
 
-        public static String getDepartment (String ID) {
-            string sqlconnection = String.Format (DatabaseConnection.mainConnection, "CentralnyBank");
-            using (SqlConnection connection = new SqlConnection (sqlconnection)) {
-                connection.Open ();
-                SqlCommand krakowDepartment = new SqlCommand ("SELECT COUNT(*) FROM Klient WHERE ID_Oddzial LIKE 'KR%' AND ID = @ID", connection);
-                krakowDepartment.Parameters.Add ("@ID", SqlDbType.NVarChar).Value = ID;
-                int krakowExists = (int) krakowDepartment.ExecuteScalar ();
-
-                if (krakowExists > 0) {
-                    return "OddzialKrakow";
-                } else
-                    return "OddzialWarszawa";
-            }
-        }
-
     }
 }

@@ -9,10 +9,9 @@ using System.Transactions;
 namespace projekt {
     class MainBank {
         private static String databaseName = "CentralnyBank";
-        private static String krakowBranch = "OddzialKrakow";
-        private static String warszawaBranch = "OddzialWarszawa";
 
         public static List<Client> searchClient (String ID) {
+
             List<Client> client = new List<Client> ();
 
             string sqlconnection = String.Format (DatabaseConnection.mainConnection, databaseName);
@@ -21,7 +20,7 @@ namespace projekt {
                 using (SqlConnection connection = new SqlConnection (sqlconnection)) {
 
                     connection.Open ();
-                    using (SqlCommand command = new SqlCommand ("SELECT k.ID, Imie, Nazwisko, Miasto, PESEL, Saldo, ID_Oddzial, Nazwa FROM Klient k join Oddzial o on  k.ID_Oddzial = o.ID WHERE k.ID = @ID", connection)) {
+                    using (SqlCommand command = new SqlCommand ("SELECT k.ID, Imie, Nazwisko, Miasto, PESEL, Saldo FROM Klient k WHERE k.ID = @ID", connection)) {
                         command.Parameters.Add ("@ID", SqlDbType.NVarChar, 10).Value = ID;
                         SqlDataReader dataReader = command.ExecuteReader ();
                         while (dataReader.Read ()) {
@@ -31,15 +30,27 @@ namespace projekt {
                                     Surname = (String) dataReader.GetValue (2),
                                     City = (String) dataReader.GetValue (3),
                                     PESEL = (String) dataReader.GetValue (4),
-                                    Balance = (double) dataReader.GetValue (5),
-                                    DepartmentID = (String) dataReader.GetValue (6)
+                                    Balance = (double) dataReader.GetValue (5)
                             });
-                            Console.WriteLine ("ID: {0}\nImię: {1}\nNazwisko: {2}\nMiasto: {3}\nPESEL: {4}\nSaldo: {5}zł\nID Oddziału: {6}\nNazwa oddziału: {7}", dataReader["ID"].ToString (),
+                            Console.WriteLine ("ID: {0}\nImię: {1}\nNazwisko: {2}\nMiasto: {3}\nPESEL: {4}\nSaldo: {5}zł", dataReader["ID"].ToString (),
                                 dataReader["Imie"].ToString (), dataReader["Nazwisko"].ToString (),
                                 dataReader["Miasto"].ToString (), dataReader["PESEL"].ToString (),
-                                dataReader["Saldo"].ToString (), dataReader["ID_Oddzial"].ToString (),
-                                dataReader["Nazwa"].ToString ());
+                                dataReader["Saldo"].ToString ());
 
+                        }
+                        dataReader.Close ();
+
+                        if (client.Count != 0) {
+                            SqlCommand deparment = new SqlCommand ("SELECT Nazwa FROM Oddzial o join Klient_Oddzial ko on o.ID = ko.ID_Oddzial WHERE ko.ID_KLIENT = @ID", connection);
+                            deparment.Parameters.Add ("@ID", SqlDbType.NVarChar).Value = ID;
+                            SqlDataReader read = deparment.ExecuteReader ();
+                            Console.Write ("Nazwa oddziału: ");
+                            while (read.Read ()) {
+                                Console.Write ("{0},", read["Nazwa"].ToString ());
+
+                            }
+                            Console.WriteLine ();
+                            read.Close ();
                         }
                     }
                 }
@@ -68,8 +79,21 @@ namespace projekt {
             double clientBalance;
             string sqlconnection = String.Format (DatabaseConnection.mainConnection, databaseName);
 
-            String reciverBank = DatabaseConnection.getDepartment (ReciverID);
-            String senderBank = DatabaseConnection.getDepartment (SenderID);
+            String reciverBank = getDepartment (ReciverID);
+            String senderBank = getDepartment (SenderID);
+
+            String reciverBank2 = "";
+            String senderBank2 = "";
+
+            if (checkDepartments (ReciverID))
+                reciverBank2 = getOtherDepartment (ReciverID);
+
+            Console.WriteLine ("ODDZIAL " + reciverBank2);
+
+            if (checkDepartments (SenderID))
+                senderBank2 = getOtherDepartment (SenderID);
+
+            Console.WriteLine ("ODDZIAL " + senderBank2);
 
             try {
                 using (TransactionScope oTran = new TransactionScope ()) {
@@ -103,6 +127,13 @@ namespace projekt {
                             Department.sendMoneyDepartment (amountOfMoney, SenderID, ReciverID, true, senderBank);
                             Department.sendMoneyDepartment (amountOfMoney, ReciverID, SenderID, false, reciverBank);
 
+                            if (senderBank2.Length != 0) {
+                                Department.setSender (amountOfMoney, SenderID, senderBank2);
+                            }
+                            if (reciverBank2.Length != 0) {
+                                Department.setReciver (amountOfMoney, ReciverID, reciverBank2);
+                            }
+
                         }
                     }
 
@@ -113,6 +144,53 @@ namespace projekt {
                 Console.WriteLine (e.Message);
                 return false;
             }
+        }
+
+        public static String getDepartment (String ID) {
+            string sqlconnection = String.Format (DatabaseConnection.mainConnection, "CentralnyBank");
+            using (SqlConnection connection = new SqlConnection (sqlconnection)) {
+                connection.Open ();
+                SqlCommand krakowDepartment = new SqlCommand ("SELECT COUNT(*) FROM Klient k join Klient_Oddzial ko on k.ID = ko.ID_Klient WHERE ko.ID_Oddzial LIKE 'KR%' AND k.ID = @ID", connection);
+                krakowDepartment.Parameters.Add ("@ID", SqlDbType.NVarChar).Value = ID;
+                int krakowExists = (int) krakowDepartment.ExecuteScalar ();
+
+                if (krakowExists > 0) {
+                    return "OddzialKrakow";
+                } else
+                    return "OddzialWarszawa";
+            }
+        }
+
+        public static bool checkDepartments (String ID) {
+            string sqlconnection = String.Format (DatabaseConnection.mainConnection, "CentralnyBank");
+            using (SqlConnection connection = new SqlConnection (sqlconnection)) {
+                connection.Open ();
+                SqlCommand numberOfDepartments = new SqlCommand ("SELECT COUNT(*) FROM Klient_Oddzial WHERE ID_Klient = @ID", connection);
+                numberOfDepartments.Parameters.Add ("@ID", SqlDbType.NVarChar).Value = ID;
+                int departments = (int) numberOfDepartments.ExecuteScalar ();
+                Console.WriteLine ("ILOSC DEPARTAMENTOW " + departments);
+
+                if (departments == 2)
+                    return true;
+                else
+                    return false;
+            }
+        }
+
+        public static String getOtherDepartment (String ID) {
+            String department;
+            if (getDepartment (ID) == "OddzialKrakow")
+                department = "OddzialWarszawa";
+            else if (getDepartment (ID) == "OddzialWarszawa")
+                department = "OddzialKrakow";
+            else
+                department = "";
+            Console.WriteLine ("BRANCH DEPARTMENT " + department);
+            return department;
+        }
+
+        public static void withdrawMoney (String ID, double amount) {
+
         }
 
     }

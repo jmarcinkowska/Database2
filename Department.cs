@@ -21,7 +21,6 @@ namespace projekt {
                     System.Environment.Exit (1);
                 }
 
-                //jezeli transfer jest między różnymi oddziałami
                 if (isSender) {
 
                     SqlCommand updateSender = new SqlCommand ("UPDATE Klient SET Saldo = Saldo - @amountOfMoney where ID = @ID1", connection);
@@ -62,6 +61,32 @@ namespace projekt {
                 }
 
                 transaction.ExecuteNonQuery ();
+            }
+        }
+
+        public static void setSender (double amount, String ID, String department) {
+            Console.WriteLine ("setSender");
+            string sqlconnection = String.Format (DatabaseConnection.mainConnection, department);
+            using (SqlConnection connection = new SqlConnection (sqlconnection)) {
+                connection.Open ();
+                SqlCommand updateAmount = new SqlCommand ("UPDATE Klient SET Saldo = Saldo - @amount WHERE ID = @ID", connection);
+                updateAmount.Parameters.Add ("@ID", SqlDbType.NVarChar).Value = ID;
+                updateAmount.Parameters.Add ("@amount", SqlDbType.Float).Value = amount;
+                updateAmount.ExecuteNonQuery ();
+                Console.WriteLine ("..");
+            }
+        }
+
+        public static void setReciver (double amount, String ID, String department) {
+            Console.WriteLine ("setReciver");
+            string sqlconnection = String.Format (DatabaseConnection.mainConnection, department);
+            using (SqlConnection connection = new SqlConnection (sqlconnection)) {
+                connection.Open ();
+                SqlCommand updateAmount = new SqlCommand ("UPDATE Klient SET Saldo = Saldo + @amount WHERE ID = @ID", connection);
+                updateAmount.Parameters.Add ("@ID", SqlDbType.NVarChar).Value = ID;
+                updateAmount.Parameters.Add ("@amount", SqlDbType.Float).Value = amount;
+                updateAmount.ExecuteNonQuery ();
+                Console.WriteLine ("..........");
             }
         }
     }
