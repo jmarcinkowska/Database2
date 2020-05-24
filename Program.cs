@@ -4,12 +4,6 @@ using System.Linq;
 using System.Text;
 
 namespace projekt {
-    enum menu {
-        exit = 0,
-        findClient = 1,
-        withdrawMoney = 2,
-        depositMoney = 3
-    }
 
     class Program {
         static void Main (string[] args) {
@@ -24,6 +18,7 @@ namespace projekt {
             Console.WriteLine (" [1] - znajdź klienta");
             Console.WriteLine (" [2] - wypłać pieniądze");
             Console.WriteLine (" [3] - wpłać pieniądze");
+            Console.WriteLine (" [4] - wykonaj przelew");
 
             String key = Console.ReadLine ();
 
@@ -33,6 +28,9 @@ namespace projekt {
                     break;
                 case "1":
                     Menu.FindClient ();
+                    break;
+                case "4":
+                    Menu.sendMoney ();
                     break;
                 default:
                     Console.WriteLine ("Niepoprawnie wprowadzone dane");
