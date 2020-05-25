@@ -43,5 +43,21 @@ namespace projekt {
             } else
                 Console.WriteLine ("Nie udało się wykonać przelewu");
         }
+
+        public static void Withdraw () {
+            String ID;
+            double amount;
+
+            Console.WriteLine ("Podaj ID osoby wysyłającej: ");
+            ID = Console.ReadLine ();
+            if (!MainBank.checkClientID (ID)) {
+                Console.WriteLine ("Nie ma osoby o podanym numerze ID");
+                System.Environment.Exit (0);
+            }
+            Console.WriteLine ("Podaj kwote: ");
+            amount = double.Parse (Console.ReadLine ());
+
+            MainBank.withdrawMoney (ID, amount);
+        }
     }
 }

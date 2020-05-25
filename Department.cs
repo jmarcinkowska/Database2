@@ -89,5 +89,17 @@ namespace projekt {
                 Console.WriteLine ("..........");
             }
         }
+
+        public static void withdrawMoneyDepartment (String department, String ID, double amount) {
+            string sqlconnection = String.Format (DatabaseConnection.mainConnection, department);
+            using (SqlConnection connection = new SqlConnection (sqlconnection)) {
+                connection.Open ();
+
+                SqlCommand withdraw = new SqlCommand ("UPDATE Klient SET Saldo = Saldo - @amount WHERE ID = @ID", connection);
+                withdraw.Parameters.Add ("@ID", SqlDbType.NVarChar).Value = ID;
+                withdraw.Parameters.Add ("@amount", SqlDbType.Float).Value = amount;
+                withdraw.ExecuteNonQuery ();
+            }
+        }
     }
 }

@@ -190,7 +190,45 @@ namespace projekt {
         }
 
         public static void withdrawMoney (String ID, double amount) {
+            string sqlconnection = String.Format (DatabaseConnection.mainConnection, databaseName);
 
+            try {
+                using (TransactionScope scope = new TransactionScope ()) {
+                    using (SqlConnection connection = new SqlConnection (sqlconnection)) {
+                        connection.Open ();
+                        SqlCommand checkBalance = new SqlCommand ("SELECT Saldo FROM Klient WHERE ID = @ID", connection);
+                        checkBalance.Parameters.Add ("@ID", SqlDbType.NVarChar).Value = ID;
+
+                        if ((double) checkBalance.ExecuteScalar () - amount < 0) {
+                            Console.WriteLine ("Niewystarczajaca ilość pieniędzy do wypłacenia");
+                            System.Environment.Exit (1);
+                        }
+
+                        SqlCommand withdraw = new SqlCommand ("UPDATE Klient SET Saldo = Saldo - @amount WHERE ID = @ID", connection);
+                        withdraw.Parameters.Add ("@ID", SqlDbType.NVarChar).Value = ID;
+                        withdraw.Parameters.Add ("@amount", SqlDbType.Float).Value = amount;
+                        withdraw.ExecuteNonQuery ();
+
+                        String ClientDepartment = getDepartment (ID);
+                        String ClientDepartment2 = "";
+
+                        if (checkDepartments (ID))
+                            ClientDepartment2 = getOtherDepartment (ID);
+
+                        Department.withdrawMoneyDepartment (ClientDepartment, ID, amount);
+
+                        if (ClientDepartment2 != "")
+                            Department.withdrawMoneyDepartment (ClientDepartment2, ID, amount);
+
+                        Console.WriteLine ("Pomyślnie udało się wypłacić pieniądze");
+
+                        scope.Complete ();
+                    }
+                }
+            } catch (SqlException e) {
+                Console.WriteLine (e.Message);
+                Console.WriteLine ("Nie udało się wypłacić pieniędzy");
+            }
         }
 
     }
