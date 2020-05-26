@@ -59,5 +59,42 @@ namespace projekt {
 
             MainBank.withdrawMoney (ID, amount);
         }
+
+        public static void Deposit () {
+            String ID;
+            double amount;
+
+            Console.WriteLine ("Podaj ID osoby wysyłającej: ");
+            ID = Console.ReadLine ();
+            if (!MainBank.checkClientID (ID)) {
+                Console.WriteLine ("Nie ma osoby o podanym numerze ID");
+                System.Environment.Exit (0);
+            }
+            Console.WriteLine ("Podaj kwote: ");
+            amount = double.Parse (Console.ReadLine ());
+
+            MainBank.depositMoney (ID, amount);
+        }
+
+        public static void register () {
+            String name;
+            String surname;
+            String pesel;
+            String city;
+            double amount;
+
+            Console.WriteLine ("Podaj imie: ");
+            name = Console.ReadLine ();
+            Console.WriteLine ("Podaj nazwisko: ");
+            surname = Console.ReadLine ();
+            Console.WriteLine ("Podaj PESEL: ");
+            pesel = Console.ReadLine ();
+            Console.WriteLine ("Podaj Miasto: ");
+            city = Console.ReadLine ();
+            Console.WriteLine ("Podaj kwotę pieniędzy, którą chcesz wpłacic: ");
+            amount = double.Parse (Console.ReadLine ());
+
+            MainBank.register (name, surname, pesel, city, amount);
+        }
     }
 }
