@@ -12,7 +12,7 @@ namespace projekt {
             DatabaseConnection.connectToDatabase ("OddzialKrakow");
             DatabaseConnection.connectToDatabase ("OddzialWarszawa");
 
-            Console.WriteLine ("               MINI BANK                ");
+            Console.WriteLine ("               MINI BANK                \n");
             Console.WriteLine ("Wybierz jedną z opcji");
             Console.WriteLine (" [0] - wyjście");
             Console.WriteLine (" [1] - znajdź klienta");

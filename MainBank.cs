@@ -20,8 +20,8 @@ namespace projekt {
                 using (SqlConnection connection = new SqlConnection (sqlconnection)) {
 
                     connection.Open ();
-                    using (SqlCommand command = new SqlCommand ("SELECT k.ID, Imie, Nazwisko, Miasto, PESEL, Saldo FROM Klient k WHERE k.ID = @ID", connection)) {
-                        command.Parameters.Add ("@ID", SqlDbType.NVarChar, 10).Value = ID;
+                    using (SqlCommand command = new SqlCommand ("SELECT ID, Imie, Nazwisko, Miasto, PESEL, Saldo FROM Klient WHERE PESEL = @PESEL", connection)) {
+                        command.Parameters.Add ("@PESEL", SqlDbType.NVarChar).Value = ID;
                         SqlDataReader dataReader = command.ExecuteReader ();
                         while (dataReader.Read ()) {
                             client.Add (new Client () {
@@ -41,7 +41,7 @@ namespace projekt {
                         dataReader.Close ();
 
                         if (client.Count != 0) {
-                            SqlCommand deparment = new SqlCommand ("SELECT Nazwa FROM Oddzial o join Klient_Oddzial ko on o.ID = ko.ID_Oddzial WHERE ko.ID_KLIENT = @ID", connection);
+                            SqlCommand deparment = new SqlCommand ("SELECT Nazwa FROM Oddzial o join Klient_Oddzial ko on o.ID = ko.ID_Oddzial join Klient k on ko.ID_Klient = k.ID WHERE k.PESEL = @ID", connection);
                             deparment.Parameters.Add ("@ID", SqlDbType.NVarChar).Value = ID;
                             SqlDataReader read = deparment.ExecuteReader ();
                             Console.Write ("Nazwa oddziału: ");
@@ -293,31 +293,58 @@ namespace projekt {
             }
         }
 
-        public static void register (String name, String surname, String pesel, String city, double amount) {
-            String ID = RandomID ();
-            Console.WriteLine (ID);
-            string sqlconnection = String.Format (DatabaseConnection.mainConnection, databaseName);
-            using (TransactionScope scope = new TransactionScope ()) {
-                using (SqlConnection connection = new SqlConnection (sqlconnection)) {
-                    connection.Open ();
-                    if (!checkClientID (ID)) {
-                        while (checkClientID (ID)) {
-                            ID = RandomID ();
+        public static String getDepartmentID (String department) {
+            String dep = "";
+            if (department == "OddzialKrakow")
+                dep = "KR1234";
+            if (department == "OddzialWarszawa")
+                dep = "WA1234";
+            return dep;
+        }
+
+        public static void register (String name, String surname, String city, String pesel, double balance, String department) {
+            try {
+                String departmentID = getDepartmentID (department);
+                String ID = RandomID ();
+
+                string sqlconnection = String.Format (DatabaseConnection.mainConnection, databaseName);
+                using (TransactionScope scope = new TransactionScope ()) {
+                    using (SqlConnection connection = new SqlConnection (sqlconnection)) {
+                        connection.Open ();
+                        if (!checkClientID (ID)) {
+                            while (checkClientID (ID)) {
+                                ID = RandomID ();
+                            }
                         }
+
+                        SqlCommand registerClient = new SqlCommand ("INSERT INTO Klient VALUES(@ID, @name, @surname, @city, @pesel, @amount)", connection);
+                        registerClient.Parameters.Add ("@ID", SqlDbType.NVarChar).Value = ID;
+                        registerClient.Parameters.Add ("@name", SqlDbType.NVarChar).Value = name;
+                        registerClient.Parameters.Add ("@surname", SqlDbType.NVarChar).Value = surname;
+                        registerClient.Parameters.Add ("@city", SqlDbType.NVarChar).Value = city;
+                        registerClient.Parameters.Add ("@pesel", SqlDbType.NVarChar).Value = pesel;
+                        registerClient.Parameters.Add ("@amount", SqlDbType.Float).Value = balance;
+                        registerClient.ExecuteNonQuery ();
+
+                        SqlCommand registerDepartment = new SqlCommand ("INSERT INTO Klient_Oddzial VALUES(@ID, @departmentID)", connection);
+                        registerDepartment.Parameters.Add ("@ID", SqlDbType.NVarChar).Value = ID;
+                        registerDepartment.Parameters.Add ("departmentID", SqlDbType.NVarChar).Value = departmentID;
+                        registerDepartment.ExecuteNonQuery ();
                     }
 
-                    SqlCommand registerClient = new SqlCommand ("INSERT INTO Klient VALUES(@ID, @name, @surname, @city, @pesel, @amount)", connection);
-                    registerClient.Parameters.Add ("@ID", SqlDbType.NVarChar).Value = ID;
-                    registerClient.Parameters.Add ("@name", SqlDbType.NVarChar).Value = name;
-                    registerClient.Parameters.Add ("@surname", SqlDbType.NVarChar).Value = surname;
-                    registerClient.Parameters.Add ("@city", SqlDbType.NVarChar).Value = city;
-                    registerClient.Parameters.Add ("@pesel", SqlDbType.NVarChar).Value = pesel;
-                    registerClient.Parameters.Add ("@amount", SqlDbType.Float).Value = amount;
-                    registerClient.ExecuteNonQuery ();
-                }
+                    Department.registerClient (ID, name, surname, city, pesel, balance, department);
 
-                scope.Complete ();
+                    Console.WriteLine ("Pomyślnie udało się zarejestrować użytkownika");
+                    Console.WriteLine ("Twój numer ID to: \n" + ID);
+                    scope.Complete ();
+                }
+            } catch (SqlException) {
+                Console.WriteLine ("Nie udało się zarejestrować\n");
             }
+        }
+
+        public static void transaction (String ID) {
+
         }
 
         public static string RandomID () {

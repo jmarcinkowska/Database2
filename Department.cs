@@ -174,5 +174,21 @@ namespace projekt {
                 transaction (amount, ID, department, "Wpłata pieniędzy");
             }
         }
+
+        public static void registerClient (String ID, String name, String surname, String city, String pesel, double balance, String department) {
+            string sqlconnection = String.Format (DatabaseConnection.mainConnection, department);
+            using (SqlConnection connection = new SqlConnection (sqlconnection)) {
+                connection.Open ();
+
+                SqlCommand registerClient = new SqlCommand ("INSERT INTO Klient VALUES(@ID, @name, @surname, @city, @pesel, @amount)", connection);
+                registerClient.Parameters.Add ("@ID", SqlDbType.NVarChar).Value = ID;
+                registerClient.Parameters.Add ("@name", SqlDbType.NVarChar).Value = name;
+                registerClient.Parameters.Add ("@surname", SqlDbType.NVarChar).Value = surname;
+                registerClient.Parameters.Add ("@city", SqlDbType.NVarChar).Value = city;
+                registerClient.Parameters.Add ("@pesel", SqlDbType.NVarChar).Value = pesel;
+                registerClient.Parameters.Add ("@amount", SqlDbType.Float).Value = balance;
+                registerClient.ExecuteNonQuery ();
+            }
+        }
     }
 }

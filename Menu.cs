@@ -9,7 +9,7 @@ namespace projekt {
             String ID;
             Console.Clear ();
             Console.WriteLine ("Wprowadź dane:");
-            Console.Write ("ID klienta: ");
+            Console.Write ("PESEL klienta: ");
             ID = Console.ReadLine ();
 
             List<Client> client = MainBank.searchClient (ID);
@@ -22,6 +22,7 @@ namespace projekt {
             String SenderID;
             String ReciverID;
             double amountOfMoney;
+            Console.Clear ();
 
             Console.WriteLine ("Podaj ID osoby wysyłającej: ");
             SenderID = Console.ReadLine ();
@@ -36,7 +37,7 @@ namespace projekt {
                 System.Environment.Exit (1);
             }
             Console.WriteLine ("Podaj kwote: ");
-            amountOfMoney = double.Parse (Console.ReadLine ());
+            double.TryParse (Console.ReadLine (), out amountOfMoney);
 
             if (MainBank.sendMoney (amountOfMoney, SenderID, ReciverID)) {
                 Console.WriteLine ("Pomyślnie wykonany przelew");
@@ -47,31 +48,33 @@ namespace projekt {
         public static void Withdraw () {
             String ID;
             double amount;
+            Console.Clear ();
 
-            Console.WriteLine ("Podaj ID osoby wysyłającej: ");
+            Console.WriteLine ("Podaj ID: ");
             ID = Console.ReadLine ();
             if (!MainBank.checkClientID (ID)) {
                 Console.WriteLine ("Nie ma osoby o podanym numerze ID");
                 System.Environment.Exit (0);
             }
             Console.WriteLine ("Podaj kwote: ");
-            amount = double.Parse (Console.ReadLine ());
+            double.TryParse (Console.ReadLine (), out amount);
 
             MainBank.withdrawMoney (ID, amount);
         }
 
         public static void Deposit () {
+            Console.Clear ();
             String ID;
             double amount;
 
-            Console.WriteLine ("Podaj ID osoby wysyłającej: ");
+            Console.WriteLine ("Podaj ID: ");
             ID = Console.ReadLine ();
             if (!MainBank.checkClientID (ID)) {
                 Console.WriteLine ("Nie ma osoby o podanym numerze ID");
                 System.Environment.Exit (0);
             }
             Console.WriteLine ("Podaj kwote: ");
-            amount = double.Parse (Console.ReadLine ());
+            double.TryParse (Console.ReadLine (), out amount);
 
             MainBank.depositMoney (ID, amount);
         }
@@ -82,6 +85,8 @@ namespace projekt {
             String pesel;
             String city;
             double amount;
+            String department;
+            String departmentName;
 
             Console.WriteLine ("Podaj imie: ");
             name = Console.ReadLine ();
@@ -92,9 +97,23 @@ namespace projekt {
             Console.WriteLine ("Podaj Miasto: ");
             city = Console.ReadLine ();
             Console.WriteLine ("Podaj kwotę pieniędzy, którą chcesz wpłacic: ");
-            amount = double.Parse (Console.ReadLine ());
+            double.TryParse (Console.ReadLine (), out amount);
+            Console.WriteLine ("Wybierz oddzial do ktorego chcesz zostać zapisany\n[1] - Oddzial w Krakowie \n[2] - Oddzial w Warszawie: ");
+            department = Console.ReadLine ();
+            switch (department) {
+                case "1":
+                    department = "OddzialKrakow";
+                    break;
+                case "2":
+                    department = "OddzialWarszawa";
+                    break;
+                default:
+                    Console.WriteLine ("Nie ma podanego oddzialu");
+                    break;
+            }
 
-            MainBank.register (name, surname, pesel, city, amount);
+            MainBank.register (name, surname, city, pesel, amount, department);
+
         }
     }
 }
