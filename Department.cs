@@ -190,5 +190,25 @@ namespace projekt {
                 registerClient.ExecuteNonQuery ();
             }
         }
+
+        public static void transaction (String ID, String department) {
+            string sqlconnection = String.Format (DatabaseConnection.mainConnection, department);
+            using (SqlConnection connection = new SqlConnection (sqlconnection)) {
+                connection.Open ();
+
+                SqlCommand findTransaction = new SqlCommand ("SELECT Kwota, Nadawca, Odbiorca, Data, Nazwa FROM Transakcje WHERE Odbiorca = @ID OR Nadawca = @ID", connection);
+                findTransaction.Parameters.Add ("@ID", SqlDbType.NVarChar).Value = ID;
+                findTransaction.ExecuteNonQuery ();
+
+                SqlDataReader dataReader = findTransaction.ExecuteReader ();
+                while (dataReader.Read ()) {
+                    Console.WriteLine ("Kwota: {0}\nNadawca: {1}\nOdbiorca: {2}\nData: {3}\nTyp przelewu: {4}\n", dataReader["Kwota"].ToString (),
+                        dataReader["Nadawca"].ToString (),
+                        dataReader["Odbiorca"].ToString (),
+                        dataReader["Data"].ToString (),
+                        dataReader["Nazwa"].ToString ());
+                }
+            }
+        }
     }
 }

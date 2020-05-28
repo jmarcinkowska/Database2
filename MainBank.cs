@@ -79,6 +79,16 @@ namespace projekt {
             double clientBalance;
             string sqlconnection = String.Format (DatabaseConnection.mainConnection, databaseName);
 
+            Dictionary<String, String> dict1 = new Dictionary<string, string> ();
+            Dictionary<String, String> dict2 = new Dictionary<string, string> ();
+
+            dict1 = dep (SenderID);
+            dict2 = dep (ReciverID);
+
+            int len = dict1.Count;
+            int len2 = dict2.Count;
+            int max = Math.Max (len, len2);
+
             String reciverBank = getDepartment (ReciverID);
             String senderBank = getDepartment (SenderID);
 
@@ -128,14 +138,14 @@ namespace projekt {
                             String cmd = "UPDATE Klient SET Saldo = Saldo - @amountOfMoney where ID = @SenderID";
                             SqlCommand command2 = new SqlCommand (cmd, connection);
                             command2.Parameters.Add ("@SenderID", SqlDbType.NVarChar).Value = SenderID;
-                            command2.Parameters.Add ("@amountOfMoney", SqlDbType.NVarChar).Value = amountOfMoney;
+                            command2.Parameters.Add ("@amountOfMoney", SqlDbType.Float).Value = amountOfMoney;
                             command2.ExecuteNonQuery ();
 
                             // uaktualnienie stanu konta osoby, która odbiera przelew
                             String cmd2 = "UPDATE Klient SET Saldo = Saldo + @amountOfMoney where ID = @ReciverID";
                             SqlCommand command3 = new SqlCommand (cmd2, connection);
                             command3.Parameters.Add ("@ReciverID", SqlDbType.NVarChar).Value = ReciverID;
-                            command3.Parameters.Add ("@amountOfMoney", SqlDbType.NVarChar).Value = amountOfMoney;
+                            command3.Parameters.Add ("@amountOfMoney", SqlDbType.Float).Value = amountOfMoney;
                             command3.ExecuteNonQuery ();
 
                             bool sameDepartment;
@@ -155,9 +165,11 @@ namespace projekt {
                                 Department.sendSameDepartment (amountOfMoney, ReciverID, SenderID, false, reciverBank);
 
                             if (senderBank2.Length != 0) {
+                                Console.WriteLine ("TU POWINNO BYC 1");
                                 Department.setSender (amountOfMoney, SenderID, senderBank2);
                             }
                             if (reciverBank2.Length != 0) {
+                                Console.WriteLine ("TO TEZ SIE POWINNO POJAWIC ");
                                 Department.setReciver (amountOfMoney, ReciverID, reciverBank2);
                             }
 
@@ -218,6 +230,8 @@ namespace projekt {
 
         public static void withdrawMoney (String ID, double amount) {
             string sqlconnection = String.Format (DatabaseConnection.mainConnection, databaseName);
+            Dictionary<String, String> dict = new Dictionary<string, string> ();
+            dict = dep (ID);
 
             try {
                 using (TransactionScope scope = new TransactionScope ()) {
@@ -236,17 +250,15 @@ namespace projekt {
                         withdraw.Parameters.Add ("@amount", SqlDbType.Float).Value = amount;
                         withdraw.ExecuteNonQuery ();
 
-                        String ClientDepartment = getDepartment (ID);
-                        String ClientDepartment2 = "";
-
-                        if (checkDepartments (ID))
-                            ClientDepartment2 = getOtherDepartment (ID);
-
-                        Department.withdrawMoneyDepartment (ClientDepartment, ID, amount);
-
-                        if (ClientDepartment2 != "")
-                            Department.withdrawMoneyDepartment (ClientDepartment2, ID, amount);
-
+                        var d = dict.ElementAt (0);
+                        String v = d.Value;
+                        if (dict.Count == 2) {
+                            Console.WriteLine ("Teraz powienien sie wykonac ");
+                            Department.withdrawMoneyDepartment (dict["KR1234"], ID, amount);
+                            Department.withdrawMoneyDepartment (dict["WA1234"], ID, amount);
+                        } else {
+                            Department.withdrawMoneyDepartment (v, ID, amount);
+                        }
                         Console.WriteLine ("Pomyślnie udało się wypłacić pieniądze");
 
                         scope.Complete ();
@@ -260,6 +272,8 @@ namespace projekt {
 
         public static void depositMoney (String ID, double amount) {
             string sqlconnection = String.Format (DatabaseConnection.mainConnection, databaseName);
+            Dictionary<String, String> dict = new Dictionary<string, string> ();
+            dict = dep (ID);
 
             try {
                 using (TransactionScope scope = new TransactionScope ()) {
@@ -271,16 +285,15 @@ namespace projekt {
                         withdraw.Parameters.Add ("@amount", SqlDbType.Float).Value = amount;
                         withdraw.ExecuteNonQuery ();
 
-                        String ClientDepartment = getDepartment (ID);
-                        String ClientDepartment2 = "";
-
-                        if (checkDepartments (ID))
-                            ClientDepartment2 = getOtherDepartment (ID);
-
-                        Department.depositMoneyDepartment (ClientDepartment, ID, amount);
-
-                        if (ClientDepartment2 != "")
-                            Department.depositMoneyDepartment (ClientDepartment2, ID, amount);
+                        var d = dict.ElementAt (0);
+                        String v = d.Value;
+                        if (dict.Count == 2) {
+                            Console.WriteLine ("Teraz powienien sie wykonac ");
+                            Department.depositMoneyDepartment (dict["KR1234"], ID, amount);
+                            Department.depositMoneyDepartment (dict["WA1234"], ID, amount);
+                        } else {
+                            Department.depositMoneyDepartment (v, ID, amount);
+                        }
 
                         Console.WriteLine ("Pomyślnie udało się wpłacić pieniądze");
 
@@ -343,8 +356,58 @@ namespace projekt {
             }
         }
 
-        public static void transaction (String ID) {
+        public static void getTransaction (String ID) {
+            Console.Clear ();
+            String department = getDepartment (ID);
+            try {
+                Department.transaction (ID, department);
 
+            } catch (SqlException) {
+                Console.WriteLine ("Nie udało się znaleźć transakcji");
+            }
+
+        }
+
+        public static Dictionary<String, String> dep (String ID) {
+            Dictionary<String, String> t = new Dictionary<String, String> ();
+            List<String> branches = new List<String> ();
+
+            string sqlconnection = String.Format (DatabaseConnection.mainConnection, databaseName);
+            using (SqlConnection connection = new SqlConnection (sqlconnection)) {
+                connection.Open ();
+
+                SqlCommand br = new SqlCommand ("SELECT ID_Oddzial FROM Klient_Oddzial WHERE ID_Klient = @ID", connection);
+                br.Parameters.Add ("@ID", SqlDbType.NVarChar).Value = ID;
+                SqlDataReader dataReader = br.ExecuteReader ();
+                while (dataReader.Read ()) {
+                    branches.Add (dataReader.GetValue (0).ToString ());
+                    Console.WriteLine ("BRANCHES " + dataReader.GetValue (0).ToString ());
+                }
+
+                for (int i = 0; i < branches.Count; i++) {
+                    if (branches[i] == "KR1234")
+                        t.Add ("KR1234", "OddzialKrakow");
+                    if (branches[i] == "WA1234")
+                        t.Add ("WA1234", "OddzialWarszawa");
+
+                }
+
+            }
+            return t;
+        }
+
+        public static bool checkPesel (String pesel) {
+            string sqlconnection = String.Format (DatabaseConnection.mainConnection, databaseName);
+            using (SqlConnection connection = new SqlConnection (sqlconnection)) {
+                connection.Open ();
+                SqlCommand command = new SqlCommand ("SELECT COUNT(*) FROM Klient WHERE PESEL = @pesel", connection);
+                command.Parameters.Add ("@pesel", SqlDbType.NVarChar).Value = pesel;
+                int userExists = (int) command.ExecuteScalar ();
+                if (userExists == 0)
+                    return true;
+                else
+                    return false;
+            }
         }
 
         public static string RandomID () {

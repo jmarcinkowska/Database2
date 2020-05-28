@@ -14,7 +14,7 @@ namespace projekt {
 
             List<Client> client = MainBank.searchClient (ID);
             if (client.Count == 0) {
-                Console.WriteLine ("Nie znaleziono klienta o podanym ID");
+                Console.WriteLine ("Nie znaleziono klienta o podanym numerze PESEL");
             }
         }
 
@@ -86,7 +86,7 @@ namespace projekt {
             String city;
             double amount;
             String department;
-            String departmentName;
+            Console.Clear ();
 
             Console.WriteLine ("Podaj imie: ");
             name = Console.ReadLine ();
@@ -94,6 +94,14 @@ namespace projekt {
             surname = Console.ReadLine ();
             Console.WriteLine ("Podaj PESEL: ");
             pesel = Console.ReadLine ();
+            if (!MainBank.checkPesel (pesel)) {
+                Console.WriteLine ("Osoba o podanym numerze PESEL już istnieje w bazie");
+                System.Environment.Exit (1);
+            }
+            if (pesel.Length != 11) {
+                Console.WriteLine ("Długość numeru PESEL musi wynosić 11");
+                System.Environment.Exit (1);
+            }
             Console.WriteLine ("Podaj Miasto: ");
             city = Console.ReadLine ();
             Console.WriteLine ("Podaj kwotę pieniędzy, którą chcesz wpłacic: ");
@@ -114,6 +122,20 @@ namespace projekt {
 
             MainBank.register (name, surname, city, pesel, amount, department);
 
+        }
+
+        public static void showTransactions () {
+            Console.Clear ();
+            String ID;
+            Console.WriteLine ("Podaj swoje ID:");
+            ID = Console.ReadLine ();
+            ID = Console.ReadLine ();
+            if (!MainBank.checkClientID (ID)) {
+                Console.WriteLine ("Nie ma osoby o podanym numerze ID");
+                System.Environment.Exit (0);
+            }
+
+            MainBank.getTransaction (ID);
         }
     }
 }
