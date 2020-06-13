@@ -18,7 +18,6 @@ namespace projekt
                 connection.Open();
                 SqlCommand balance = new SqlCommand("SELECT Saldo FROM Klient where ID = @ID1", connection);
                 balance.Parameters.Add("@ID1", SqlDbType.NVarChar).Value = ID1;
-                //Console.WriteLine("balans " + (double)balance.ExecuteScalar());
 
                 if ((double)balance.ExecuteScalar() - amountOfMoney < 0)
                 {
@@ -33,17 +32,13 @@ namespace projekt
                     updateSender.Parameters.Add("@ID1", SqlDbType.NVarChar).Value = ID1;
                     updateSender.Parameters.Add("@amountOfMoney", SqlDbType.Float).Value = amountOfMoney;
                     updateSender.ExecuteNonQuery();
-                    //Console.WriteLine("tutaj jest sender");
-                    //Console.WriteLine(department);
                 }
-                if(!isSender)
+                if (!isSender)
                 {
                     SqlCommand updateReciver = new SqlCommand("UPDATE Klient SET Saldo = Saldo + @amountOfMoney where ID = @ID2", connection);
                     updateReciver.Parameters.Add("@ID2", SqlDbType.NVarChar).Value = ID1;
                     updateReciver.Parameters.Add("@amountOfMoney", SqlDbType.Float).Value = amountOfMoney;
                     updateReciver.ExecuteNonQuery();
-                    //Console.WriteLine("tutaj jest reciver");
-                    //Console.WriteLine(department);
                 }
 
                 String name = "Przelew";
@@ -75,7 +70,6 @@ namespace projekt
                     updateSender.Parameters.Add("@ID1", SqlDbType.NVarChar).Value = ID1;
                     updateSender.Parameters.Add("@amountOfMoney", SqlDbType.Float).Value = amountOfMoney;
                     updateSender.ExecuteNonQuery();
-                    //Console.WriteLine(department);
                 }
                 if (!isSender)
                 {
@@ -83,7 +77,6 @@ namespace projekt
                     updateReciver.Parameters.Add("@ID2", SqlDbType.NVarChar).Value = ID1;
                     updateReciver.Parameters.Add("@amountOfMoney", SqlDbType.Float).Value = amountOfMoney;
                     updateReciver.ExecuteNonQuery();
-                    //Console.WriteLine(department);
                 }
             }
 
@@ -94,33 +87,30 @@ namespace projekt
             string sqlconnection = String.Format(DatabaseConnection.mainConnection, department);
             using (SqlConnection connection = new SqlConnection(sqlconnection))
             {
-                //Console.WriteLine("D E P A R T A M E N T " + department);
                 connection.Open();
                 String guid = Guid.NewGuid().ToString();
-                    SqlCommand transaction = new SqlCommand("INSERT INTO Transakcje VALUES(@ID, @amount, @sender, @reciver, @date, @name)", connection);
-                    transaction.Parameters.Add("@amount", SqlDbType.Float).Value = amount;
-                    transaction.Parameters.Add("@date", SqlDbType.DateTime).Value = DateTime.Now;
-                    transaction.Parameters.Add("@name", SqlDbType.NVarChar).Value = name;
-                    transaction.Parameters.Add("@ID", SqlDbType.NVarChar).Value = guid;
+                SqlCommand transaction = new SqlCommand("INSERT INTO Transakcje VALUES(@ID, @amount, @sender, @reciver, @date, @name)", connection);
+                transaction.Parameters.Add("@amount", SqlDbType.Float).Value = amount;
+                transaction.Parameters.Add("@date", SqlDbType.DateTime).Value = DateTime.Now;
+                transaction.Parameters.Add("@name", SqlDbType.NVarChar).Value = name;
+                transaction.Parameters.Add("@ID", SqlDbType.NVarChar).Value = guid;
 
-                    if (isSender)
-                    {
-                        //Console.WriteLine("transaction SENDER");
-                        transaction.Parameters.Add("@sender", SqlDbType.NVarChar).Value = sender;
-                        transaction.Parameters.Add("@reciver", SqlDbType.NVarChar).Value = reciver;
-                    }
-                    else
-                    {
-                        //Console.WriteLine("transaction RECIVER");
-                        transaction.Parameters.Add("@sender", SqlDbType.NVarChar).Value = reciver;
-                        transaction.Parameters.Add("@reciver", SqlDbType.NVarChar).Value = sender;
-                    }
-
-                    transaction.ExecuteNonQuery();
+                if (isSender)
+                {
+                    transaction.Parameters.Add("@sender", SqlDbType.NVarChar).Value = sender;
+                    transaction.Parameters.Add("@reciver", SqlDbType.NVarChar).Value = reciver;
                 }
+                else
+                {
+                    transaction.Parameters.Add("@sender", SqlDbType.NVarChar).Value = reciver;
+                    transaction.Parameters.Add("@reciver", SqlDbType.NVarChar).Value = sender;
+                }
+
+                transaction.ExecuteNonQuery();
+            }
         }
 
-       public static void transaction(double amount, String ID, String department, String name)
+        public static void transaction(double amount, String ID, String department, String name)
         {
             string sqlconnection = String.Format(DatabaseConnection.mainConnection, department);
             using (SqlConnection connection = new SqlConnection(sqlconnection))
@@ -142,7 +132,6 @@ namespace projekt
 
         public static void setSender(double amount, String ID, String department)
         {
-            //Console.WriteLine("setSender");
             string sqlconnection = String.Format(DatabaseConnection.mainConnection, department);
             using (SqlConnection connection = new SqlConnection(sqlconnection))
             {
@@ -151,14 +140,12 @@ namespace projekt
                 updateAmount.Parameters.Add("@ID", SqlDbType.NVarChar).Value = ID;
                 updateAmount.Parameters.Add("@amount", SqlDbType.Float).Value = amount;
                 updateAmount.ExecuteNonQuery();
-                //Console.WriteLine("..");
 
             }
         }
 
         public static void setReciver(double amount, String ID, String department)
         {
-            //Console.WriteLine("setReciver");
             string sqlconnection = String.Format(DatabaseConnection.mainConnection, department);
             using (SqlConnection connection = new SqlConnection(sqlconnection))
             {
@@ -167,7 +154,6 @@ namespace projekt
                 updateAmount.Parameters.Add("@ID", SqlDbType.NVarChar).Value = ID;
                 updateAmount.Parameters.Add("@amount", SqlDbType.Float).Value = amount;
                 updateAmount.ExecuteNonQuery();
-                //Console.WriteLine("..........");
             }
         }
 

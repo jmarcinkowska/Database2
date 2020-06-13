@@ -11,6 +11,7 @@ namespace projekt
         {
             String ID;
             Console.Clear();
+            Console.WriteLine("WYSZUKIWANIE KLIENTA\n");
             Console.WriteLine("Wprowadź dane:");
             Console.WriteLine("PESEL klienta: ");
             ID = Console.ReadLine();
@@ -20,16 +21,16 @@ namespace projekt
             {
                 Console.WriteLine("Nie znaleziono klienta o podanym numerze PESEL");
             }
-            Console.WriteLine(client);
         }
 
         public static void send()
         {
+
             String SenderID;
             String ReciverID;
             double amountOfMoney;
             Console.Clear();
-
+            Console.WriteLine("WYSYŁANIE PRZELEWU\n");
             Console.WriteLine("Podaj ID osoby wysyłającej: ");
             SenderID = Console.ReadLine();
             if (!MainBank.checkClientID(SenderID))
@@ -57,10 +58,11 @@ namespace projekt
 
         public static void withdraw()
         {
+
             String ID;
             double amount;
             Console.Clear();
-
+            Console.WriteLine("WYPŁACANIE PIENIĘDZY\n");
             Console.WriteLine("Podaj ID: ");
             ID = Console.ReadLine();
             if (!MainBank.checkClientID(ID))
@@ -76,10 +78,11 @@ namespace projekt
 
         public static void deposit()
         {
+
             Console.Clear();
             String ID;
             double amount;
-
+            Console.WriteLine("WPŁACANIE PIENIĘDZY\n");
             Console.WriteLine("Podaj ID: ");
             ID = Console.ReadLine();
             if (!MainBank.checkClientID(ID))
@@ -95,6 +98,7 @@ namespace projekt
 
         public static void register()
         {
+
             String name;
             String surname;
             String pesel;
@@ -102,7 +106,7 @@ namespace projekt
             double amount;
             String department;
             Console.Clear();
-
+            Console.WriteLine("REJESTROWANIE KLIENTA\n");
             Console.WriteLine("Podaj imie: ");
             name = Console.ReadLine();
             Console.WriteLine("Podaj nazwisko: ");
@@ -144,11 +148,13 @@ namespace projekt
 
         public static void showTransactions()
         {
+
             Console.Clear();
             String ID;
+            Console.WriteLine("TRANSAKCJE\n");
             Console.WriteLine("Podaj swoje ID:");
             ID = Console.ReadLine();
-            
+
             if (!MainBank.checkClientID(ID))
             {
                 Console.WriteLine("Nie ma osoby o podanym numerze ID");

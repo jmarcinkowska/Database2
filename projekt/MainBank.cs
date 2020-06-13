@@ -10,21 +10,21 @@ namespace projekt
 {
     class MainBank
     {
-        public MainBank(){}
+        public MainBank() { }
         private static String databaseName = "CentralnyBank";
 
         public static List<Client> searchClient(String ID)
         {
-           
+
             List<Client> client = new List<Client>();
 
             string sqlconnection = String.Format(DatabaseConnection.mainConnection, databaseName);
-       
+
             try
             {
                 using (SqlConnection connection = new SqlConnection(sqlconnection))
                 {
-                    
+
                     connection.Open();
                     using (SqlCommand command = new SqlCommand("SELECT ID, Imie, Nazwisko, Miasto, PESEL, Saldo FROM Klient WHERE PESEL = @PESEL", connection))
                     {
@@ -32,21 +32,24 @@ namespace projekt
                         SqlDataReader dataReader = command.ExecuteReader();
                         while (dataReader.Read())
                         {
-                            client.Add(new Client() { ID = (String)dataReader.GetValue(0), 
-                                                      Name = (String)dataReader.GetValue(1), 
-                                                      Surname = (String)dataReader.GetValue(2), 
-                                                      City = (String)dataReader.GetValue(3), 
-                                                      PESEL = (String)dataReader.GetValue(4), 
-                                                      Balance = (double)dataReader.GetValue(5) }); 
+                            client.Add(new Client()
+                            {
+                                ID = (String)dataReader.GetValue(0),
+                                Name = (String)dataReader.GetValue(1),
+                                Surname = (String)dataReader.GetValue(2),
+                                City = (String)dataReader.GetValue(3),
+                                PESEL = (String)dataReader.GetValue(4),
+                                Balance = (double)dataReader.GetValue(5)
+                            });
                             Console.WriteLine("ID: {0}\nImię: {1}\nNazwisko: {2}\nMiasto: {3}\nPESEL: {4}\nSaldo: {5}zł", dataReader["ID"].ToString(),
                                                                                         dataReader["Imie"].ToString(), dataReader["Nazwisko"].ToString(),
                                                                                         dataReader["Miasto"].ToString(), dataReader["PESEL"].ToString(),
                                                                                         dataReader["Saldo"].ToString());
-                            
+
                         }
                         dataReader.Close();
 
-                        if(client.Count != 0)
+                        if (client.Count != 0)
                         {
                             SqlCommand deparment = new SqlCommand("SELECT Nazwa FROM Oddzial o join Klient_Oddzial ko on o.ID = ko.ID_Oddzial join Klient k on ko.ID_Klient = k.ID WHERE k.PESEL = @ID", connection);
                             deparment.Parameters.Add("@ID", SqlDbType.NVarChar).Value = ID;
@@ -55,7 +58,7 @@ namespace projekt
                             while (read.Read())
                             {
                                 Console.Write("{0},", read["Nazwa"].ToString());
-                                
+
                             }
                             Console.WriteLine();
                             read.Close();
@@ -123,32 +126,28 @@ namespace projekt
                     reciverBank = "OddzialKrakow";
             }
 
-            if(reciver2)
+            if (reciver2)
                 reciverBank2 = getOtherDepartment(reciverBank);
-
-            //Console.WriteLine("ODDZIAL " + reciverBank2);
 
             if (sender2)
                 senderBank2 = getOtherDepartment(senderBank);
 
 
-            //Console.WriteLine("ODDZIAL " + senderBank2);
-
             try
             {
-                using(TransactionScope oTran = new TransactionScope())
+                using (TransactionScope oTran = new TransactionScope())
                 {
                     using (SqlConnection connection = new SqlConnection(sqlconnection))
                     {
 
                         connection.Open();
-                        
+
                         using (SqlCommand command = new SqlCommand("SELECT Saldo FROM Klient WHERE ID = @SenderID", connection))
                         {
                             command.Parameters.Add("@SenderID", SqlDbType.Float, 10).Value = SenderID;
                             clientBalance = (double)command.ExecuteScalar();
 
-                            if(clientBalance - amountOfMoney < 0)
+                            if (clientBalance - amountOfMoney < 0)
                             {
                                 Console.WriteLine("Niewystarczająca ilość pieniędzy");
                                 return false;
@@ -174,11 +173,8 @@ namespace projekt
                             else
                                 sameDepartment = false;
 
-                            //Console.WriteLine("SAME DEPARTMENT " + sameDepartment);
-
                             Department.sendMoneyDepartment(amountOfMoney, SenderID, ReciverID, true, senderBank);
-                            //Console.WriteLine("D E P " + senderBank);
-                            //Console.WriteLine("D E P " + reciverBank);
+
                             if (!sameDepartment)
                                 Department.sendMoneyDepartment(amountOfMoney, ReciverID, SenderID, false, reciverBank);
                             else
@@ -186,15 +182,13 @@ namespace projekt
 
                             if (senderBank2.Length != 0)
                             {
-                                //Console.WriteLine("TU POWINNO BYC 1");
                                 Department.setSender(amountOfMoney, SenderID, senderBank2);
                             }
                             if (reciverBank2.Length != 0)
                             {
-                                //Console.WriteLine("TO TEZ SIE POWINNO POJAWIC ");
                                 Department.setReciver(amountOfMoney, ReciverID, reciverBank2);
                             }
-                            
+
                         }
                     }
 
@@ -238,7 +232,6 @@ namespace projekt
                 SqlCommand numberOfDepartments = new SqlCommand("SELECT COUNT(*) FROM Klient_Oddzial WHERE ID_Klient = @ID", connection);
                 numberOfDepartments.Parameters.Add("@ID", SqlDbType.NVarChar).Value = ID;
                 int departments = (int)numberOfDepartments.ExecuteScalar();
-                //Console.WriteLine("ILOSC DEPARTAMENTOW " + departments);
 
                 if (departments == 2)
                     return true;
@@ -256,7 +249,6 @@ namespace projekt
                 department2 = "OddzialKrakow";
             else
                 department2 = "";
-            //Console.WriteLine("BRANCH DEPARTMENT " + department);
             return department2;
         }
 
@@ -291,7 +283,6 @@ namespace projekt
                         String v = d.Value;
                         if (dict.Count == 2)
                         {
-                            Console.WriteLine("Teraz powienien sie wykonac ");
                             Department.withdrawMoneyDepartment(dict["KR1234"], ID, amount);
                             Department.withdrawMoneyDepartment(dict["WA1234"], ID, amount);
                         }
@@ -336,7 +327,6 @@ namespace projekt
                         String v = d.Value;
                         if (dict.Count == 2)
                         {
-                            //Console.WriteLine("Teraz powienien sie wykonac ");
                             Department.depositMoneyDepartment(dict["KR1234"], ID, amount);
                             Department.depositMoneyDepartment(dict["WA1234"], ID, amount);
                         }
@@ -347,7 +337,7 @@ namespace projekt
 
                         Console.WriteLine("Pomyślnie udało się wpłacić pieniądze");
 
-                        
+
                         scope.Complete();
                     }
                 }
@@ -363,7 +353,7 @@ namespace projekt
         {
             String dep = "";
             if (department == "OddzialKrakow")
-                dep =  "KR1234";
+                dep = "KR1234";
             if (department == "OddzialWarszawa")
                 dep = "WA1234";
             return dep;
@@ -375,7 +365,7 @@ namespace projekt
             {
                 String departmentID = getDepartmentID(department);
                 String ID = RandomID();
-             
+
                 string sqlconnection = String.Format(DatabaseConnection.mainConnection, databaseName);
                 using (TransactionScope scope = new TransactionScope())
                 {
@@ -425,13 +415,13 @@ namespace projekt
             try
             {
                 Department.getTransaction(ID, department);
-                
+
             }
             catch (SqlException)
             {
                 Console.WriteLine("Nie udało się znaleźć transakcji");
             }
-            
+
         }
 
         public static Dictionary<String, String> departmentID(String ID)
@@ -454,7 +444,7 @@ namespace projekt
 
                 for (int i = 0; i < branches.Count; i++)
                 {
-                    if(branches[i] == "KR1234")
+                    if (branches[i] == "KR1234")
                         t.Add("KR1234", "OddzialKrakow");
                     if (branches[i] == "WA1234")
                         t.Add("WA1234", "OddzialWarszawa");
@@ -495,5 +485,5 @@ namespace projekt
         }
 
     }
-    
+
 }
